@@ -1,0 +1,19 @@
+{
+  "listenUrl": "http://localhost:8100",
+  "retryCount": 3,
+  "retryTime": 2000,
+  "requestTag": "[Request]",
+  "responseTag": "[Response]",
+  "prompt": null,
+  "promptFile": "prompt.txt",
+  "escape": {
+    "enabled": true,
+    "spaceChar": "",
+    "spacePrompt": "All whitespace(` `) characters must be replaced with `{0}`. ",
+    "newlineChar": "",
+    "newlinePrompt": "All newline characters must be replaced with `{0}`. ",
+    "ignoreChar": "ㅃ",
+    "ignorePrompt": "You must ignore all `{0}` character in keywords. You must insert `{0}` character between response at {1} character intervals. ",
+    "ignoreInsert": 5
+  }
+}
