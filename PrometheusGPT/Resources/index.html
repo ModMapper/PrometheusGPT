@@ -1,0 +1,100 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Bing GPT API Server</title>
+    <style>
+        h2  { display: flex; flex-flow: row; margin: 10px 0; gap: 0.5em; align-items: center; }
+        #url { flex: 1 1; padding: 0.1em 0.5em; color: dodgerblue; font-size: 1.2em; }
+        nav { display: flex; flex-flow: row; margin: 5px 0; gap: 0.5em; }
+        nav button { font-size: 16pt; }
+        .chat { display: flex; flex-flow: row; margin: 5px 0; gap: 0.2em; }
+        .chat .role { width: 5%; min-width: 5em; padding: 0.5em; font-size: 16pt; }
+        .chat .content { height: 5em; flex: 1 1; resize: vertical; }
+        #loading { position: absolute; inset: 0 0 0 0; background-color: #DDD8; }
+    </style>
+</head>
+<body>
+    <h1>Bing GPT Server</h1>
+    <h2>OpenAI API <input type="text" id="url" readonly /></h2>
+    <h2>API KEY <input type="text" id="apikey" style="flex: 1 1;" /></h2>
+    <div id="chats"></div>
+    <template id="template">
+        <div class="chat">
+            <select class="role">
+                <option value="user">유저</option>
+                <option value="assistant">AI</option>
+                <option value="system">시스템</option>
+            </select>
+            <textarea class="content"></textarea>
+            <button class="remove">❌</button>
+        </div>
+    </template>
+    <nav>
+        <button style="flex: 1 1;" onclick="SendChat()">전송</button>
+        <button style="width: 5em" onclick="AddChat()">추가</button>
+    </nav>
+    <div id="loading" style="display: none;"></div>
+
+    <script>
+        document.getElementById("url").value =
+            window.location.protocol + "//" + window.location.host + "/OpenAI/";
+
+        const wrapChat = document.getElementById("chats");
+        const txtKey = document.getElementById("apikey");
+        const loading = document.getElementById("loading");
+        AddChat();
+
+        function AddChat(role, content) {
+            let chat = document.getElementById("template").content;
+            chat = document.importNode(chat, true);
+            if (role != null) {
+                chat.querySelector(".role").value = role;
+                chat.querySelector(".content").value = content;
+            }
+            chat.querySelector(".remove").addEventListener("click", (evt) => {
+                const element = evt.target.closest(".chat");
+                element.parentElement.removeChild(element);
+            });
+            wrapChat.appendChild(chat);
+        }
+
+        async function SendChat() {
+            const data = {
+                model: "Prometheus",
+                messages: GetChats(),
+                stream: false,
+            };
+
+            loading.style.display = "block";
+            try {
+                const res = await fetch("./OpenAI/", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + txtKey.value,
+                    },
+                    body: JSON.stringify(data),
+                });
+
+                const json = await res.json();
+                const msg = json.choices[0].message;
+                AddChat(msg.role, msg.content);
+                AddChat();
+            } catch { }
+            loading.style.display = "none";
+        }
+
+        function GetChats() {
+            const chats = wrapChat.getElementsByClassName("chat");
+            const result = [];
+            for (const chat of chats) {
+                const role = chat.querySelector(".role").value;
+                const content = chat.querySelector(".content").value;
+                result.push({ role: role, content: content });
+            }
+            return result;
+        }
+    </script>
+</body>
+</html>
